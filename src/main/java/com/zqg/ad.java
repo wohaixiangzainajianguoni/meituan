@@ -4,7 +4,8 @@ package com.zqg;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zqg.kakfautils.GetTopicOffsetFromKafkaBroker;
 import com.zqg.kakfautils.GetTopicOffsetFromZookeeper;
-import com.zqg.kakfautils.Log;
+import com.zqg.models.BlackList;
+import com.zqg.models.Log;
 import kafka.common.TopicAndPartition;
 import kafka.message.MessageAndMetadata;
 import kafka.serializer.StringDecoder;
@@ -12,16 +13,21 @@ import net.sf.json.JSONObject;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryUntilElapsed;
+import org.apache.hadoop.hdfs.server.balancer.Balancer;
+import org.apache.logging.log4j.core.pattern.AbstractStyleNameConverter;
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
@@ -29,7 +35,11 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka.HasOffsetRanges;
 import org.apache.spark.streaming.kafka.KafkaUtils;
 import org.apache.spark.streaming.kafka.OffsetRange;
+import scala.Tuple2;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -76,24 +86,14 @@ public class ad {
         SparkConf conf = new SparkConf().setMaster("local[*]").setAppName("SparkStreamingOnKafkaDirect");
         conf.set("spark.streaming.kafka.maxRatePerPartition", "10");
         JavaStreamingContext jsc = new JavaStreamingContext(conf, Durations.seconds(5));
-
         JavaSparkContext context = jsc.sparkContext();
-
-        JavaRDD<String> parallelize =  getBlickList();
-
-//        JavaRDD<String> parallelize = context.parallelize(Arrays.asList("7198e4bd-6f87-4144-968b-ddacfc4e72cd", "193879cf-b7c4-49db-9e47-c76aa2ec74db"));
-
-
-        Broadcast<List<String>> broadcast = context.broadcast(parallelize.collect());
-
-
-//        jsc.checkpoint("/checkpoint");
+        context.setLogLevel("warn");
         Map<String, String> kafkaParams = new HashMap<String, String>();
         kafkaParams.put("metadata.broker.list","master:9092");
 //        kafkaParams.put("group.id","MyFirstConsumerGroup");
 
         for(Map.Entry<TopicAndPartition,Long> entry:topicOffsets.entrySet()){
-            System.out.println(entry.getKey().topic()+"\t"+entry.getKey().partition()+"\t"+entry.getValue());
+            System.out.println(entry.getKey().topic()+""+entry.getKey().partition()+""+entry.getValue());
         }
 
         JavaInputDStream<String> message = KafkaUtils.createDirectStream(
@@ -117,16 +117,7 @@ public class ad {
                     }
                 }
         );
-        JavaInputDStream<String> messageNew=message;
-
-        JavaDStream<Log>  filtered= BlackListFilter(messageNew,broadcast);
-
-        filtered.print();
-
-
-
-
-
+//        JavaInputDStream<String> messageNew=message;
 
 
 
@@ -181,7 +172,7 @@ public class ad {
 //                    public void call(String s) throws Exception {
 //                        String url = "jdbc:mysql://192.168.178.128:3306/bigdata?useUnicode=true&characterEncoding=utf8";
 //                        Connection connection = DriverManager.getConnection(url, "root", "111111");
-//                        PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO `wordcount` (`word`) VALUES (?)");
+//                        PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO wordcount (word) VALUES (?)");
 //                            preparedStatement.setString(1,s);
 //                            preparedStatement.addBatch();
 //                            preparedStatement.execute();
@@ -194,6 +185,14 @@ public class ad {
 
 		lines.print();
 
+        JavaRDD<String> parallelize =  getBlickList();
+        Broadcast<List<String>> broadcast = context.broadcast(parallelize.collect());
+        JavaDStream<Log>  filtered= BlackListFilter(lines,broadcast);
+
+        System.out.println("过滤后的数据输出前");
+        filtered.print();
+        System.out.println("过滤后的数据输出后");
+        generaterBlackList(message);
 
 
         jsc.start();
@@ -204,35 +203,159 @@ public class ad {
 
     }
 
-    private static JavaRDD<String> getBlickList() {
+    private static void generaterBlackList(JavaInputDStream<String> message) {
 
-        SparkConf sparkConf = new SparkConf();
+        JavaDStream<Log> transform = message.transform(new Function<JavaRDD<String>, JavaRDD<Log>>() {
 
-        sparkConf.setMaster("local");
-        sparkConf.setAppName("mysql");
+            @Override
+            public JavaRDD<Log> call(JavaRDD<String> stringJavaRDD) throws Exception {
 
+                JavaRDD<Log> map = stringJavaRDD.map(new Function<String, Log>() {
+                    @Override
+                    public Log call(String s) throws Exception {
+                        Log log = jsontoLog(s);
+                        return log;
+                    }
+                });
+
+                return  map;
+            }
+        });
+
+     transform.mapToPair(new PairFunction<Log, String, Integer>() {
+         @Override
+         public Tuple2<String, Integer> call(Log log) {
+             String accessTime = log.getAccessTime();
+             String userId = log.getUserId();
+             String advId = log.getAdvId();
+
+             return  new Tuple2<>(accessTime+"__"+userId+"__"+advId,1);
+
+         }
+     }).reduceByKey(new Function2<Integer, Integer, Integer>() {
+         @Override
+         public Integer call(Integer integer, Integer integer2) throws Exception {
+             return  integer+integer2;
+         }
+     }).foreachRDD(new VoidFunction<JavaPairRDD<String, Integer>>() {
+         @Override
+         public void call(JavaPairRDD<String, Integer> stringIntegerJavaPairRDD) throws Exception {
+               stringIntegerJavaPairRDD.foreachPartition(new VoidFunction<Iterator<Tuple2<String, Integer>>>() {
+                   @Override
+                   public void call(Iterator<Tuple2<String, Integer>> tuple2Iterator) throws Exception {
+
+                       String url = "jdbc:mysql://192.168.178.133:3306/bigdata?useUnicode=true&characterEncoding=utf8";
+                       Connection connection = DriverManager.getConnection(url, "root", "111111");
+                  while (tuple2Iterator.hasNext())
+                  {
+                      Tuple2<String, Integer> next = tuple2Iterator.next();
+                      String s = next._1;
+                      String[] s1 = s.split("__");
+                      Integer integer = next._2;
+                      PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO clickcount (user_id, adv_id, time, click_time) VALUES (?,?, ?, ?)");
+                      preparedStatement.setString(1,s1[1]);
+                      preparedStatement.setString(2,s1[2]);
+                      preparedStatement.setString(3,s1[0]);
+                      preparedStatement.setInt(4,integer);
+                      preparedStatement.addBatch();
+                      preparedStatement.execute();
+                  }
+
+
+                  connection.close();
+                   }
+               });
+         }
+     });
+
+//     生成的数据防卫记录中查询出黑名单
+        SparkConf sparkConf=new SparkConf();
+        sparkConf.setAppName("生成黑名单");
+        sparkConf.setMaster("x");
         SparkSession session = SparkSession.builder().config(sparkConf).getOrCreate();
-        Properties readConnProperties1 = new Properties();
-        readConnProperties1.put("driver", "com.mysql.jdbc.Driver");
-        readConnProperties1.put("user", "root");
-        readConnProperties1.put("password", "111111");
 
-        readConnProperties1.put("fetchsize", "3");
+        Properties  properties=new Properties();
 
-        Dataset<Row> jdbc = session.read().jdbc(
+        properties.put("user","root");
+        properties.put("password","111111");
+        properties.put("driver","com.mysql.jdbc.Driver");
+        properties.put("fetchsize","3");
+
+        Dataset<Row> blacklist = session.read().jdbc(
                 "jdbc:mysql://192.168.178.133:3306/bigdata",
-                "ClickCount",
-                readConnProperties1);
+                "clickcount",
+                properties
+        );
 
-        jdbc.show();
+         blacklist.createOrReplaceTempView("clickcount");
 
-        return    null;
+        Dataset<Row> sql = session.sql("SELECT" +
+                "  user_id  from (" +
+                "  SELECT" +
+                "  sum(click_time) c_count," +
+                "  time," +
+                "  user_id," +
+                "  adv_id" +
+                "  FROM" +
+                "  clickcount  " +
+                "  GROUP BY" +
+                "  time," +
+                "  user_id," +
+                "  adv_id" +
+                "  ) tmp" +
+                "  WHERE" +
+                "  tmp.c_count > 100");
 
+
+//        sql.show();
+
+
+        sql.write().mode(SaveMode.Overwrite).jdbc(
+                "jdbc:mysql://192.168.178.133:3306/bigdata",
+                "blacklist",
+                properties
+        );
 
 
     }
 
-    private static JavaDStream<Log> BlackListFilter(JavaInputDStream<String> message, Broadcast<List<String>> broadcast) {
+
+
+
+
+    private static JavaRDD<String> getBlickList() {
+
+
+        SparkConf sparkConf = new SparkConf();
+        sparkConf.setMaster("local");
+        sparkConf.setAppName("mysql");
+        SparkSession spark = SparkSession
+                .builder()
+                .config(sparkConf).getOrCreate();
+        Properties readConnProperties1 = new Properties();
+        readConnProperties1.put("driver", "com.mysql.jdbc.Driver");
+        readConnProperties1.put("user", "root");
+        readConnProperties1.put("password", "111111");
+        readConnProperties1.put("fetchsize", "3");
+        Dataset<Row> jdbc = spark.read().jdbc(
+                "jdbc:mysql://192.168.178.133:3306/bigdata",
+                "blacklist",
+                readConnProperties1);
+
+        JavaRDD<Row> javaRDD = jdbc.javaRDD();
+        JavaRDD<String> map = javaRDD.map(new Function<Row, String>() {
+            @Override
+            public String call(Row row) {
+
+                return row.get(0).toString();
+            }
+        });
+
+        return   map;
+
+    }
+
+    private static JavaDStream<Log> BlackListFilter(JavaDStream<String> message, Broadcast<List<String>> broadcast) {
 
         JavaDStream<Log> transform = message.transform(new Function<JavaRDD<String>, JavaRDD<Log>>() {
             @Override
@@ -246,23 +369,22 @@ public class ad {
                 return map;
             }
         });
-
-
         List<String> value = broadcast.value();
-
-
         JavaDStream<Log> filter = transform.filter(new Function<Log, Boolean>() {
             @Override
             public Boolean call(Log log) throws Exception {
-
-                if (value.contains(log.getUserId())) {
-                    return false;
-                } else {
-                    return true;
+                if(value.contains(log.getUserId()))
+                {
+                    return  false;
+                }
+                else
+                {
+                    return   true;
                 }
             }
         });
 
+        filter.print();
 
         return  filter;
 
@@ -275,6 +397,9 @@ public class ad {
         Object bean = JSONObject.toBean(fromObject,Log.class);
         return  (Log)bean;
     }
+
+
+
 
 
 }

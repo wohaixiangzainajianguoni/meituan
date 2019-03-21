@@ -1,12 +1,15 @@
 package com.zqg.kakfautils;
 
+import com.zqg.models.BlackList;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
+import java.util.Date;
 import java.util.Properties;
 
 public class SmallTest {
@@ -35,6 +38,22 @@ public class SmallTest {
         jdbc.show();
         JavaRDD<Row> javaRDD = jdbc.javaRDD();
 
+
+        JavaRDD<BlackList> map = javaRDD.map(new Function<Row, BlackList>() {
+            @Override
+            public BlackList call(Row row) {
+                return new BlackList(row.get(0).toString(), row.get(1).toString(),
+                        (Date) row.get(2)
+                        , Integer.parseInt(row.get(3).toString()));
+            }
+        });
+
+        map.foreach(new VoidFunction<BlackList>() {
+            @Override
+            public void call(BlackList blackList) throws Exception {
+                System.out.println(blackList);
+            }
+        });
 
     }
 }
