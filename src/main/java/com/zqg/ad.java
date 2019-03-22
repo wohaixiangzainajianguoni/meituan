@@ -16,6 +16,7 @@ import org.apache.curator.retry.RetryUntilElapsed;
 import org.apache.hadoop.hdfs.server.balancer.Balancer;
 import org.apache.logging.log4j.core.pattern.AbstractStyleNameConverter;
 import org.apache.spark.SparkConf;
+import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -35,8 +36,10 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka.HasOffsetRanges;
 import org.apache.spark.streaming.kafka.KafkaUtils;
 import org.apache.spark.streaming.kafka.OffsetRange;
+import org.codehaus.janino.Java;
 import scala.Tuple2;
 
+import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -46,12 +49,17 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  *  实施流量统计
  */
-public class ad {
+public class ad    {
 
-    static  final  String zkList="192.168.178.133:2181";
-    static  final  String  brokerList="192.168.178.133:9092";
-    static  final  String topic="zzz";
-    static  final  String groupId="group2";
+    static    String zkList="192.168.178.133:2181";
+    static    String  brokerList="192.168.178.133:9092";
+    static    String topic="zzz";
+    static    String groupId="group2";
+
+
+    static Broadcast<List<String>> broadcast=null;
+     static JavaStreamingContext jsc=null;
+     static  JavaSparkContext  sparkContext=null;
     public static void main(String[] args) throws InterruptedException {
         /**
          * 业务要求：黑名单的定义：用户在【一天】内对某个广告点击的次数 超过100次。
@@ -85,9 +93,11 @@ public class ad {
 //        context.awaitTermination();
         SparkConf conf = new SparkConf().setMaster("local[*]").setAppName("SparkStreamingOnKafkaDirect");
         conf.set("spark.streaming.kafka.maxRatePerPartition", "10");
-        JavaStreamingContext jsc = new JavaStreamingContext(conf, Durations.seconds(5));
-        JavaSparkContext context = jsc.sparkContext();
-        context.setLogLevel("warn");
+     jsc= new JavaStreamingContext(conf, Durations.seconds(5));
+     sparkContext=jsc.sparkContext();
+     sparkContext.setLogLevel("warn");
+//        JavaSparkContext context = jsc.sparkContext();
+//        context.setLogLevel("warn");
         Map<String, String> kafkaParams = new HashMap<String, String>();
         kafkaParams.put("metadata.broker.list","master:9092");
 //        kafkaParams.put("group.id","MyFirstConsumerGroup");
@@ -95,7 +105,6 @@ public class ad {
         for(Map.Entry<TopicAndPartition,Long> entry:topicOffsets.entrySet()){
             System.out.println(entry.getKey().topic()+""+entry.getKey().partition()+""+entry.getValue());
         }
-
         JavaInputDStream<String> message = KafkaUtils.createDirectStream(
                 jsc,
                 String.class,
@@ -110,8 +119,9 @@ public class ad {
                      *
                      */
                     private static final long serialVersionUID = 1L;
-
                     public String call(MessageAndMetadata<String, String> v1)throws Exception {
+
+
 
                         return v1.message();
                     }
@@ -132,6 +142,9 @@ public class ad {
                                                           public JavaRDD<String> call(JavaRDD<String> rdd) throws Exception {
                                                               OffsetRange[] offsets = ((HasOffsetRanges) rdd.rdd()).offsetRanges();
                                                               offsetRanges.set(offsets);
+
+                                       update(rdd.context(),true);
+
                                                               return rdd;
                                                           }
                                                       }
@@ -142,6 +155,8 @@ public class ad {
             private static final long serialVersionUID = 1L;
             @Override
             public void call(JavaRDD<String> t) throws Exception {
+
+
                 /**
                  * 更新偏移量
                  */
@@ -164,6 +179,9 @@ public class ad {
                     }
                 }
                 curatorFramework.close();
+
+
+
                 /**
                  * 更新偏移量
                  */
@@ -183,17 +201,11 @@ public class ad {
             }
         });
 
-		lines.print();
-
-        JavaRDD<String> parallelize =  getBlickList();
-        Broadcast<List<String>> broadcast = context.broadcast(parallelize.collect());
-        JavaDStream<Log>  filtered= BlackListFilter(lines,broadcast);
-
-        System.out.println("过滤后的数据输出前");
+//		lines.print();
+		getInstance(sparkContext);
+        JavaDStream<Log>  filtered= BlackListFilter(lines, broadcast);
         filtered.print();
-        System.out.println("过滤后的数据输出后");
-        generaterBlackList(message);
-
+        generaterBlackList(filtered);
 
         jsc.start();
         jsc.awaitTermination();
@@ -203,26 +215,23 @@ public class ad {
 
     }
 
-    private static void generaterBlackList(JavaInputDStream<String> message) {
 
-        JavaDStream<Log> transform = message.transform(new Function<JavaRDD<String>, JavaRDD<Log>>() {
+    public  static void  update( SparkContext sparkContext,  Boolean blocking  ) {
+        if (broadcast != null){
+            broadcast.unpersist(blocking);
+            JavaSparkContext context = JavaSparkContext.fromSparkContext(sparkContext);
+            broadcast     = context.broadcast(getBlickList());
+        }
+        else {
+            JavaSparkContext context = JavaSparkContext.fromSparkContext(sparkContext);
+            getInstance(context);
+        }
+    }
+    private static void generaterBlackList(JavaDStream<Log> message) {
 
-            @Override
-            public JavaRDD<Log> call(JavaRDD<String> stringJavaRDD) throws Exception {
 
-                JavaRDD<Log> map = stringJavaRDD.map(new Function<String, Log>() {
-                    @Override
-                    public Log call(String s) throws Exception {
-                        Log log = jsontoLog(s);
-                        return log;
-                    }
-                });
 
-                return  map;
-            }
-        });
-
-     transform.mapToPair(new PairFunction<Log, String, Integer>() {
+     message.mapToPair(new PairFunction<Log, String, Integer>() {
          @Override
          public Tuple2<String, Integer> call(Log log) {
              String accessTime = log.getAccessTime();
@@ -310,11 +319,11 @@ public class ad {
 //        sql.show();
 
 
-        sql.write().mode(SaveMode.Overwrite).jdbc(
-                "jdbc:mysql://192.168.178.133:3306/bigdata",
-                "blacklist",
-                properties
-        );
+//        sql.write().mode(SaveMode.Overwrite).jdbc(
+//                "jdbc:mysql://192.168.178.133:3306/bigdata",
+//                "blacklist",
+//                properties
+//        );
 
 
     }
@@ -323,11 +332,11 @@ public class ad {
 
 
 
-    private static JavaRDD<String> getBlickList() {
+    private static List<String> getBlickList() {
 
 
         SparkConf sparkConf = new SparkConf();
-        sparkConf.setMaster("local");
+        sparkConf.setMaster("local[*]");
         sparkConf.setAppName("mysql");
         SparkSession spark = SparkSession
                 .builder()
@@ -350,8 +359,11 @@ public class ad {
                 return row.get(0).toString();
             }
         });
+        List<String> collect = map.collect();
 
-        return   map;
+//        spark.close();
+
+        return   collect;
 
     }
 
@@ -384,12 +396,22 @@ public class ad {
             }
         });
 
-        filter.print();
+//        filter.print();
 
         return  filter;
 
 
     }
+
+    public  static       Broadcast<List<String>> getInstance(JavaSparkContext sparkContext)  {
+
+                if (broadcast == null) {
+                     broadcast = sparkContext.broadcast(getBlickList());
+                }
+        return broadcast;
+    }
+
+
     public static Log jsontoLog(String json)
     {
 
