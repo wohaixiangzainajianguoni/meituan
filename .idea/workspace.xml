@@ -4,6 +4,18 @@
     <list default="true" id="2f8a5834-4afa-464d-9fa6-570622cb6e18" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/zqg/ad.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/zqg/ad.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/zqg/ad$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/zqg/ad$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/zqg/ad$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/zqg/ad$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/zqg/ad$3.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/zqg/ad$3.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/zqg/ad$4$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/zqg/ad$4.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/zqg/ad$4.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/zqg/ad$5.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/zqg/ad$5.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/zqg/ad$6.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/zqg/ad$6.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/zqg/ad$7.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/zqg/ad$7.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/zqg/ad$8$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/zqg/ad$8.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/zqg/ad$8.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/zqg/ad$9.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/zqg/ad$9.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/zqg/ad.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/zqg/ad.class" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -17,38 +29,41 @@
     <session id="-602497864">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="4" />
+          <entry key="project.closed" value="6" />
+          <entry key="project.open.time.0" value="1" />
           <entry key="project.open.time.2" value="2" />
+          <entry key="project.open.time.21" value="1" />
+          <entry key="project.open.time.22" value="1" />
           <entry key="project.open.time.3" value="1" />
           <entry key="project.open.time.38" value="1" />
           <entry key="project.open.time.4" value="1" />
-          <entry key="project.opened" value="5" />
+          <entry key="project.opened" value="8" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="java" value="8325" />
+          <entry key="java" value="9422" />
           <entry key="xml" value="36" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="JAVA" value="8325" />
+          <entry key="JAVA" value="9422" />
           <entry key="XML" value="36" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="class" value="10" />
-          <entry key="java" value="74" />
+          <entry key="class" value="15" />
+          <entry key="java" value="77" />
           <entry key="scala" value="3" />
           <entry key="xml" value="1" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
-          <entry key="CLASS" value="10" />
-          <entry key="JAVA" value="74" />
+          <entry key="CLASS" value="15" />
+          <entry key="JAVA" value="77" />
           <entry key="Scala" value="3" />
           <entry key="XML" value="1" />
         </counts>
@@ -60,21 +75,13 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/zqg/ad.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="413">
-              <caret line="240" column="71" lean-forward="true" selection-start-line="240" selection-start-column="71" selection-end-line="240" selection-end-column="71" />
+            <state relative-caret-position="8">
+              <caret line="194" column="20" lean-forward="true" selection-start-line="194" selection-start-column="20" selection-end-line="194" selection-end-column="20" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="method#getBlickList#0;class#ad#0" />
+                <element signature="e#14748#14749#0" expanded="true" />
+                <element signature="e#14808#14809#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="jar://$USER_HOME$/.m2/repository/org/apache/spark/spark-streaming_2.11/2.1.0/spark-streaming_2.11-2.1.0.jar!/org/apache/spark/streaming/api/java/JavaDStream.class">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="400">
-              <caret line="16" selection-start-line="16" selection-end-line="16" />
             </state>
           </provider>
         </entry>
@@ -96,11 +103,14 @@
       <find>`</find>
       <find>system.out.</find>
       <find>getInstance(jsc.sparkContext());</find>
-      <find>update</find>
-      <find>getInstance</find>
       <find>close</find>
       <find>JavaSparkContext</find>
+      <find>update</find>
+      <find>getInstance</find>
       <find>BlackListFilter</find>
+      <find>SparkSession</find>
+      <find>conf</find>
+      <find>ad</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -138,10 +148,10 @@
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="-370" />
-    <option name="y" value="315" />
+    <option name="x" value="-10" />
+    <option name="y" value="135" />
     <option name="width" value="1731" />
-    <option name="height" value="1001" />
+    <option name="height" value="1049" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -150,6 +160,7 @@
     </navigator>
     <panes>
       <pane id="Scope" />
+      <pane id="AndroidView" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -160,44 +171,22 @@
             <path>
               <item name="meituan" type="b2602c69:ProjectViewProjectNode" />
               <item name="meituan" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="meituan" type="b2602c69:ProjectViewProjectNode" />
-              <item name="meituan" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="main" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="meituan" type="b2602c69:ProjectViewProjectNode" />
-              <item name="meituan" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="main" type="462c0819:PsiDirectoryNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="meituan" type="b2602c69:ProjectViewProjectNode" />
-              <item name="meituan" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="main" type="462c0819:PsiDirectoryNode" />
-              <item name="java" type="462c0819:PsiDirectoryNode" />
-              <item name="zqg" type="462c0819:PsiDirectoryNode" />
+              <item name="target" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="AndroidView" />
       <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1553247597526" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1553508227542" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
-    <property name="project.structure.last.edited" value="Problems" />
+    <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
   </component>
@@ -252,18 +241,20 @@
       <workItem from="1552615643025" duration="2563000" />
       <workItem from="1553060480077" duration="16132000" />
       <workItem from="1553131877428" duration="23916000" />
-      <workItem from="1553220296887" duration="18965000" />
+      <workItem from="1553220296887" duration="23871000" />
+      <workItem from="1553477620627" duration="4424000" />
+      <workItem from="1553484515403" duration="9208000" />
+      <workItem from="1553502809333" duration="3690000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="70165000" />
+    <option name="totallyTimeSpent" value="92393000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.17643923" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.18123667" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Designer" order="2" />
       <window_info id="Image Layers" order="3" />
@@ -272,13 +263,13 @@
       <window_info id="Capture Tool" order="6" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.26898047" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.3177874" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.6359275" weight="0.47071582" />
+      <window_info active="true" anchor="bottom" id="Debug" order="3" sideWeight="0.63752663" visible="true" weight="0.39479393" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Terminal" order="7" />
-      <window_info anchor="bottom" id="Event Log" order="8" side_tool="true" />
+      <window_info anchor="bottom" id="Event Log" order="8" sideWeight="0.36247334" side_tool="true" visible="true" weight="0.39479393" />
       <window_info anchor="bottom" id="Messages" order="9" weight="0.22017354" />
       <window_info anchor="bottom" id="Java Enterprise" order="10" />
       <window_info anchor="bottom" id="Database Changes" order="11" show_stripe_button="false" />
@@ -304,13 +295,6 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/src/main/java/com/zqg/kakfautils/GetTopicOffsetFromZookeeper.java">
       <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/zqg/kakfautils/GetTopicOffsetFromKafkaBroker.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="256">
-          <caret line="39" column="14" lean-forward="true" selection-start-line="39" selection-start-column="14" selection-end-line="39" selection-end-column="14" />
-        </state>
-      </provider>
     </entry>
     <entry file="jar://$USER_HOME$/.m2/repository/org/apache/spark/spark-streaming_2.11/2.1.0/spark-streaming_2.11-2.1.0.jar!/org/apache/spark/streaming/scheduler/JobScheduler.class">
       <provider selected="true" editor-type-id="text-editor">
@@ -368,9 +352,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="398">
           <caret line="23" column="34" selection-start-line="23" selection-start-column="34" selection-end-line="23" selection-end-column="34" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -378,13 +359,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="251">
           <caret line="65" column="37" selection-start-line="65" selection-start-column="37" selection-end-line="65" selection-end-column="37" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#477#478#0" expanded="true" />
-            <element signature="e#510#511#0" expanded="true" />
-            <element signature="e#562#563#0" expanded="true" />
-            <element signature="e#606#607#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -392,18 +366,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="400">
           <caret line="18" lean-forward="true" selection-start-line="18" selection-end-line="18" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#405#406#0" expanded="true" />
-            <element signature="e#441#442#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$USER_HOME$/.m2/repository/org/apache/spark/spark-core_2.11/2.1.0/spark-core_2.11-2.1.0.jar!/org/apache/spark/api/java/JavaSparkContext.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="230">
-          <caret line="71" column="6" selection-start-line="71" selection-start-column="6" selection-end-line="71" selection-end-column="6" />
         </state>
       </provider>
     </entry>
@@ -428,13 +390,42 @@
         </state>
       </provider>
     </entry>
+    <entry file="jar://$USER_HOME$/.m2/repository/org/apache/spark/spark-core_2.11/2.1.0/spark-core_2.11-2.1.0.jar!/org/apache/spark/broadcast/Broadcast.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret column="34" selection-start-column="25" selection-end-column="34" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$USER_HOME$/.m2/repository/org/apache/spark/spark-core_2.11/2.1.0/spark-core_2.11-2.1.0.jar!/org/apache/spark/executor/Executor.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="394">
+          <caret line="18" selection-start-line="18" selection-end-line="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/zqg/kakfautils/GetTopicOffsetFromKafkaBroker.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="503">
+          <caret line="41" column="46" selection-start-line="41" selection-start-column="46" selection-end-line="41" selection-end-column="46" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$USER_HOME$/.m2/repository/org/apache/spark/spark-core_2.11/2.1.0/spark-core_2.11-2.1.0.jar!/org/apache/spark/api/java/JavaSparkContext.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="230">
+          <caret line="71" column="6" selection-start-line="71" selection-start-column="6" selection-end-line="71" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/zqg/ad.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="413">
-          <caret line="240" column="71" lean-forward="true" selection-start-line="240" selection-start-column="71" selection-end-line="240" selection-end-column="71" />
+        <state relative-caret-position="8">
+          <caret line="194" column="20" lean-forward="true" selection-start-line="194" selection-start-column="20" selection-end-line="194" selection-end-column="20" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="method#getBlickList#0;class#ad#0" />
+            <element signature="e#14748#14749#0" expanded="true" />
+            <element signature="e#14808#14809#0" expanded="true" />
           </folding>
         </state>
       </provider>

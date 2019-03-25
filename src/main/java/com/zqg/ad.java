@@ -4,7 +4,6 @@ package com.zqg;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zqg.kakfautils.GetTopicOffsetFromKafkaBroker;
 import com.zqg.kakfautils.GetTopicOffsetFromZookeeper;
-import com.zqg.models.BlackList;
 import com.zqg.models.Log;
 import kafka.common.TopicAndPartition;
 import kafka.message.MessageAndMetadata;
@@ -13,8 +12,6 @@ import net.sf.json.JSONObject;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryUntilElapsed;
-import org.apache.hadoop.hdfs.server.balancer.Balancer;
-import org.apache.logging.log4j.core.pattern.AbstractStyleNameConverter;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -27,7 +24,6 @@ import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
@@ -36,10 +32,8 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka.HasOffsetRanges;
 import org.apache.spark.streaming.kafka.KafkaUtils;
 import org.apache.spark.streaming.kafka.OffsetRange;
-import org.codehaus.janino.Java;
 import scala.Tuple2;
 
-import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -51,15 +45,27 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class ad    {
 
-    static    String zkList="192.168.178.133:2181";
-    static    String  brokerList="192.168.178.133:9092";
+    static    String zkList="192.168.178.134:2181";
+    static    String  brokerList="192.168.178.134:9092";
     static    String topic="zzz";
     static    String groupId="group2";
-
-
     static Broadcast<List<String>> broadcast=null;
      static JavaStreamingContext jsc=null;
      static  JavaSparkContext  sparkContext=null;
+     static  SparkSession  session=null;
+     static  SparkConf sparkConf=null;
+    static  List<String> list=null;
+     static {
+         sparkConf=new SparkConf();
+          sparkConf.setMaster("local[*]").setAppName("ad");
+          session=SparkSession.builder().config(sparkConf).getOrCreate();
+//         SparkContext sparkContext1 =
+         sparkContext=JavaSparkContext.fromSparkContext(session.sparkContext());
+//          sparkContext.setLogLevel("warn");
+         jsc=new JavaStreamingContext(sparkContext,Durations.seconds(5));
+
+
+     }
     public static void main(String[] args) throws InterruptedException {
         /**
          * 业务要求：黑名单的定义：用户在【一天】内对某个广告点击的次数 超过100次。
@@ -79,25 +85,6 @@ public class ad    {
         if(null!=consumerOffsets && consumerOffsets.size()>0){
             topicOffsets.putAll(consumerOffsets);
         }
-//		SparkConf conf = new SparkConf().setMaster("local[*]").setAppName("SparkStreamingOnKafkaDirect");
-//		conf.set("spark.streaming.kafka.maxRatePerPartition", "10");
-//                 JavaStreamingContext context = new JavaStreamingContext(conf, Durations.seconds(5));
-//                 context.checkpoint("hdfs://192.168.178.133:9000/adv");
-//        JavaStreamingContext context =
-//                SparkStreamingDirect.getMessage(
-//                topicOffsets, groupId
-//        );
-//
-//
-//        context.start();
-//        context.awaitTermination();
-        SparkConf conf = new SparkConf().setMaster("local[*]").setAppName("SparkStreamingOnKafkaDirect");
-        conf.set("spark.streaming.kafka.maxRatePerPartition", "10");
-     jsc= new JavaStreamingContext(conf, Durations.seconds(5));
-     sparkContext=jsc.sparkContext();
-     sparkContext.setLogLevel("warn");
-//        JavaSparkContext context = jsc.sparkContext();
-//        context.setLogLevel("warn");
         Map<String, String> kafkaParams = new HashMap<String, String>();
         kafkaParams.put("metadata.broker.list","master:9092");
 //        kafkaParams.put("group.id","MyFirstConsumerGroup");
@@ -120,43 +107,28 @@ public class ad    {
                      */
                     private static final long serialVersionUID = 1L;
                     public String call(MessageAndMetadata<String, String> v1)throws Exception {
-
-
-
                         return v1.message();
                     }
                 }
         );
-//        JavaInputDStream<String> messageNew=message;
-
-
-
         final AtomicReference<OffsetRange[]> offsetRanges = new AtomicReference<>();
-
         JavaDStream<String> lines = message.transform(new Function<JavaRDD<String>, JavaRDD<String>>() {
-                                                          /**
-                                                           *
-                                                           */
                                                           private static final long serialVersionUID = 1L;
                                                           @Override
                                                           public JavaRDD<String> call(JavaRDD<String> rdd) throws Exception {
                                                               OffsetRange[] offsets = ((HasOffsetRanges) rdd.rdd()).offsetRanges();
                                                               offsetRanges.set(offsets);
-
-                                       update(rdd.context(),true);
-
                                                               return rdd;
                                                           }
                                                       }
         );
+     lines.print();
 
         message.foreachRDD(new VoidFunction<JavaRDD<String>>(){
 
             private static final long serialVersionUID = 1L;
             @Override
             public void call(JavaRDD<String> t) throws Exception {
-
-
                 /**
                  * 更新偏移量
                  */
@@ -179,9 +151,7 @@ public class ad    {
                     }
                 }
                 curatorFramework.close();
-
-
-
+                update(t.context(),true);
                 /**
                  * 更新偏移量
                  */
@@ -194,7 +164,6 @@ public class ad    {
 //                            preparedStatement.setString(1,s);
 //                            preparedStatement.addBatch();
 //                            preparedStatement.execute();
-//
 //                    }
 //                });
 //                t.saveAsTextFile("d://data.txt");
@@ -203,33 +172,54 @@ public class ad    {
 
 //		lines.print();
 		getInstance(sparkContext);
-        JavaDStream<Log>  filtered= BlackListFilter(lines, broadcast);
-        filtered.print();
-        generaterBlackList(filtered);
+        JavaDStream<Log> transform = lines.transform(new Function<JavaRDD<String>, JavaRDD<Log>>() {
+            @Override
+            public JavaRDD<Log> call(JavaRDD<String> stringJavaRDD) throws Exception {
+                JavaRDD<Log> map = stringJavaRDD.map(new Function<String, Log>() {
+                    @Override
+                    public Log call(String s) throws Exception {
+                        return jsontoLog(s);
+                    }
+                });
+                return map;
+            }
+        });
 
+        JavaDStream<Log> filter = transform.filter(new Function<Log, Boolean>() {
+            @Override
+            public Boolean call(Log log) throws Exception {
+                if(list.contains(log.getUserId()))
+                {
+                    return  false;
+                }
+                else
+                {
+                    return   true;
+                }
+            }
+        });
+//        filter.print();
+//        generaterBlackList(filtered);
+        filter.print();
         jsc.start();
         jsc.awaitTermination();
-
-
-
 
     }
 
 
     public  static void  update( SparkContext sparkContext,  Boolean blocking  ) {
+         if(blocking==null)
+         {
+             blocking=false;
+         }
+
         if (broadcast != null){
             broadcast.unpersist(blocking);
             JavaSparkContext context = JavaSparkContext.fromSparkContext(sparkContext);
             broadcast     = context.broadcast(getBlickList());
         }
-        else {
-            JavaSparkContext context = JavaSparkContext.fromSparkContext(sparkContext);
-            getInstance(context);
-        }
     }
     private static void generaterBlackList(JavaDStream<Log> message) {
-
-
 
      message.mapToPair(new PairFunction<Log, String, Integer>() {
          @Override
@@ -253,7 +243,7 @@ public class ad    {
                    @Override
                    public void call(Iterator<Tuple2<String, Integer>> tuple2Iterator) throws Exception {
 
-                       String url = "jdbc:mysql://192.168.178.133:3306/bigdata?useUnicode=true&characterEncoding=utf8";
+                       String url = "jdbc:mysql://192.168.178.134:3306/bigdata?useUnicode=true&characterEncoding=utf8";
                        Connection connection = DriverManager.getConnection(url, "root", "111111");
                   while (tuple2Iterator.hasNext())
                   {
@@ -269,35 +259,23 @@ public class ad    {
                       preparedStatement.addBatch();
                       preparedStatement.execute();
                   }
-
-
                   connection.close();
                    }
                });
          }
      });
-
 //     生成的数据防卫记录中查询出黑名单
-        SparkConf sparkConf=new SparkConf();
-        sparkConf.setAppName("生成黑名单");
-        sparkConf.setMaster("x");
-        SparkSession session = SparkSession.builder().config(sparkConf).getOrCreate();
-
         Properties  properties=new Properties();
-
         properties.put("user","root");
         properties.put("password","111111");
         properties.put("driver","com.mysql.jdbc.Driver");
         properties.put("fetchsize","3");
-
         Dataset<Row> blacklist = session.read().jdbc(
-                "jdbc:mysql://192.168.178.133:3306/bigdata",
+                "jdbc:mysql://192.168.178.134:3306/bigdata",
                 "clickcount",
                 properties
         );
-
          blacklist.createOrReplaceTempView("clickcount");
-
         Dataset<Row> sql = session.sql("SELECT" +
                 "  user_id  from (" +
                 "  SELECT" +
@@ -314,60 +292,37 @@ public class ad    {
                 "  ) tmp" +
                 "  WHERE" +
                 "  tmp.c_count > 100");
-
-
 //        sql.show();
-
-
 //        sql.write().mode(SaveMode.Overwrite).jdbc(
 //                "jdbc:mysql://192.168.178.133:3306/bigdata",
 //                "blacklist",
 //                properties
 //        );
-
-
     }
 
 
-
-
-
     private static List<String> getBlickList() {
-
-
-        SparkConf sparkConf = new SparkConf();
-        sparkConf.setMaster("local[*]");
-        sparkConf.setAppName("mysql");
-        SparkSession spark = SparkSession
-                .builder()
-                .config(sparkConf).getOrCreate();
         Properties readConnProperties1 = new Properties();
         readConnProperties1.put("driver", "com.mysql.jdbc.Driver");
         readConnProperties1.put("user", "root");
         readConnProperties1.put("password", "111111");
         readConnProperties1.put("fetchsize", "3");
-        Dataset<Row> jdbc = spark.read().jdbc(
-                "jdbc:mysql://192.168.178.133:3306/bigdata",
+        Dataset<Row> jdbc = session.read().jdbc(
+                "jdbc:mysql://192.168.178.134:3306/bigdata",
                 "blacklist",
                 readConnProperties1);
-
         JavaRDD<Row> javaRDD = jdbc.javaRDD();
         JavaRDD<String> map = javaRDD.map(new Function<Row, String>() {
             @Override
             public String call(Row row) {
-
                 return row.get(0).toString();
             }
         });
-        List<String> collect = map.collect();
-
-//        spark.close();
-
-        return   collect;
-
+     list= map.collect();
+        return   list;
     }
 
-    private static JavaDStream<Log> BlackListFilter(JavaDStream<String> message, Broadcast<List<String>> broadcast) {
+    private static JavaDStream<Log> BlackListFilter(  JavaDStream<String> message) {
 
         JavaDStream<Log> transform = message.transform(new Function<JavaRDD<String>, JavaRDD<Log>>() {
             @Override
@@ -381,40 +336,33 @@ public class ad    {
                 return map;
             }
         });
-        List<String> value = broadcast.value();
+//        List<String> value = broadcast.value();
         JavaDStream<Log> filter = transform.filter(new Function<Log, Boolean>() {
             @Override
             public Boolean call(Log log) throws Exception {
-                if(value.contains(log.getUserId()))
+                if(list.contains(log.getUserId()))
                 {
                     return  false;
                 }
-                else
-                {
-                    return   true;
+                else {
+                    return  true;
                 }
             }
         });
 
-//        filter.print();
-
         return  filter;
-
-
     }
 
     public  static       Broadcast<List<String>> getInstance(JavaSparkContext sparkContext)  {
-
                 if (broadcast == null) {
                      broadcast = sparkContext.broadcast(getBlickList());
                 }
-        return broadcast;
+             return broadcast;
     }
 
 
     public static Log jsontoLog(String json)
     {
-
         JSONObject fromObject = JSONObject.fromObject(json);
         Object bean = JSONObject.toBean(fromObject,Log.class);
         return  (Log)bean;
